@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Float64MultiArray
@@ -9,15 +10,16 @@ class ChaseObject(Node):
     def __init__(self):
         super().__init__('chase_object')
 
-        self.target_angle = 0 # rad
-        self.target_distance = 0.15 # meters
-        self.ca = 1 # Angular Gain
-        self.cl = 1 # Linear Gain
+        self.target_angle = 0.0 # rad -> middle
+        self.target_distance = 0.5 # meters
+        self.ca = 1.2# Angular Gain
+        self.cl = 0.5 # Linear Gain
 
         self.move_subscriber = self.create_subscription(
             Float64MultiArray,
             '/obj_moveto',
-            self.move_callback
+            self.move_callback,
+            qos_profile=5
         )
 
         self.vel_publisher = self.create_publisher(Twist, '/cmd_vel', 5)
@@ -32,21 +34,29 @@ class ChaseObject(Node):
         self.p_controller(distance, angle)
 
     def p_controller(self, distance, angle):
-        if abs(angle) > self.target_angle + 0.2618: # roughly +/- 15 degrees
+        if abs(angle) > self.target_angle + 0.15: # roughly +/- 8.6 degrees
             e = self.target_angle - angle
-            kpa = (1 / abs(e) * (self.ca / (abs(e) ^ 2)))
-            if e > 0: # right?
-                ua = kpa * e
-            else: # left?
-                ua = -kpa * e
+            fat = 0.5
+            kpa = (1 / abs(e)) * (self.ca / (abs(e) * abs(e) + fat))
+            ua = kpa * e
+            self.get_logger().info(str(ua))
+            if ua > 2.0:
+                ua = 2.0
+            if ua < -2.0:
+                ua = -2.0
             self.publish_message(0.0, ua)
-        elif abs(distance) > self.target_distance + 0.025: # +/- 2.5 cm
+        elif abs(distance) > self.target_distance + 0.1: # 2 inches
             e = self.target_distance - distance
-            kpl = (1 / abs(e) * (self.cl / (abs(e) ^ 2)))
+            fat = 1
+            kpl = (1 / abs(e)) * (self.cl / (abs(e) * abs(e) + fat))
             if e > 0: # backwards
                 ul = -kpl * e
+                if ul > 0.15:
+                    ul = 0.15
             else: # forwards
                 ul = kpl * e
+                if ul < -0.15:
+                    ul = -0.15
             self.publish_message(ul, 0.0)
         else:
             self.publish_message(0.0, 0.0)
@@ -55,3 +65,18 @@ class ChaseObject(Node):
         msg = Twist()
         msg.linear.y = distance
         msg.angular.z = angle 
+        self.vel_publisher.publish(msg)
+        #self.get_logger().info("Twist Message - Publishing: %s, %s" %(msg.linear.x, msg.angular.z))
+
+def main():
+    rclpy.init()
+    chase_object = ChaseObject()
+    try:
+        rclpy.spin(chase_object)
+    except SystemExit:
+        rclpy.get_logger("Chase Object Node").info("Shutting Down")
+    chase_object.destroy_node()
+    rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()

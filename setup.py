@@ -20,8 +20,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'obj_finder = chung_chase_object.detect_object:main'
-            'range_finder = chung_chase_object.get_object_range:main'
+            'obj_finder = chung_chase_object.detect_object:main',
+            'range_finder = chung_chase_object.get_object_range:main',
             'chase_obj = chung_chase_object.chase_object:main'
         ],
     },

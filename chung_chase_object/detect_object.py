@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, QoSDurabilityPolicy, QoSReliabilityPolicy, QoSHistoryPolicy
@@ -57,6 +58,8 @@ class DetectObject(Node):
             x, y, w, h = self.get_object_location(contours)
             cx, cy = self.get_center(x,y,w,h)
             self.publish_message(cx,cy)
+        else:
+            self.publish_message(160.0,0.0)
 
 
     def publish_message(self, x, y):
@@ -65,7 +68,7 @@ class DetectObject(Node):
         msg.y = y
         msg.z = 0.0
         self.objloc_publisher.publish(msg)
-        self.get_logger().info("Location of Object - Publishing: %s, %s, %s" %(msg.x, msg.y, msg.z))
+        #self.get_logger().info("Location of Object - Publishing: %s, %s, %s" %(msg.x, msg.y, msg.z))
 
     def get_object_location(self, contours):
         if len(contours) != 0:
