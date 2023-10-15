@@ -34,36 +34,33 @@ class ChaseObject(Node):
         self.p_controller(distance, angle)
 
     def p_controller(self, distance, angle):
-        if abs(angle) > self.target_angle + 0.15: # roughly +/- 8.6 degrees
-            e = self.target_angle - angle
-            fat = 0.5
-            kpa = (1 / abs(e)) * (self.ca / (abs(e) * abs(e) + fat))
+        self.get_logger().info("angle " + str(angle))
+        self.get_logger().info("distance " + str(distance))
+        e = self.target_angle - angle
+        if abs(e) > 0.0873: # roughly +/- 5 degrees
+            kpa = 4
             ua = kpa * e
-            self.get_logger().info(str(ua))
             if ua > 2.0:
                 ua = 2.0
             if ua < -2.0:
                 ua = -2.0
-            self.publish_message(0.0, ua)
-        elif abs(distance) > self.target_distance + 0.1: # 2 inches
-            e = self.target_distance - distance
-            fat = 1
-            kpl = (1 / abs(e)) * (self.cl / (abs(e) * abs(e) + fat))
-            if e > 0: # backwards
-                ul = -kpl * e
-                if ul > 0.15:
-                    ul = 0.15
-            else: # forwards
-                ul = kpl * e
-                if ul < -0.15:
-                    ul = -0.15
-            self.publish_message(ul, 0.0)
         else:
-            self.publish_message(0.0, 0.0)
+            ua = 0.0
+        e = self.target_distance - distance
+        if abs(e) > 0.08: # +/- 0.05m or 8cm 
+            kpl = -0.8
+            ul = kpl * e
+            if ul > 0.15:
+                ul = 0.15
+            if ul < - 0.15:
+                ul = -0.15
+        else:
+            ul = 0.0
+        self.publish_message(ul, ua)
 
     def publish_message(self, distance, angle):
         msg = Twist()
-        msg.linear.y = distance
+        msg.linear.x = distance
         msg.angular.z = angle 
         self.vel_publisher.publish(msg)
         #self.get_logger().info("Twist Message - Publishing: %s, %s" %(msg.linear.x, msg.angular.z))

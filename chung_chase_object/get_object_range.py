@@ -55,7 +55,7 @@ class ObjectRange(Node):
         if dist != -1:
             self.publish_message(dist, angle)
         else:
-            self.publish_message(0.0, 0.0)
+            self.publish_message(0.5, 0.0)
 
     def camera_cart2rad(self, coordinates):
         '''
@@ -65,10 +65,14 @@ class ObjectRange(Node):
         Output: angle (rad)
         '''
         x = coordinates.x
+        if x == -1:
+            return None
         angle = (self.angle_per_pixel * x) - (self.fov / 2)
         return angle
 
     def find_distance(self, angle, scan_data):
+        if angle == None:
+            return -1.0
         angle_min = scan_data.angle_min
         angle_max = scan_data.angle_max
         angle_inc = scan_data.angle_increment
@@ -84,7 +88,7 @@ class ObjectRange(Node):
             range = ranges[int(index) - 1]
             return range
         except:
-            return -1
+            return -1.0
 
     def publish_message(self, dist, angle):
         msg = Float64MultiArray()

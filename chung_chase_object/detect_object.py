@@ -59,7 +59,7 @@ class DetectObject(Node):
             cx, cy = self.get_center(x,y,w,h)
             self.publish_message(cx,cy)
         else:
-            self.publish_message(160.0,0.0)
+            self.publish_message(-1.0,0.0)
 
 
     def publish_message(self, x, y):
