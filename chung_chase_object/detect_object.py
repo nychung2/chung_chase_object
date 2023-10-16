@@ -20,10 +20,10 @@ class DetectObject(Node):
         
         self.kernel = np.ones((5,5), np.uint16)
 
-        self.color = [110, 120, 90] # HSV
+        self.color = [100, 120, 90] # HSV
         self.hue = 10
-        self.sat = 50
-        self.val = 50
+        self.sat = 70
+        self.val = 770
 
         #Set up QoS Profiles for passing images over WiFi
         image_qos_profile = QoSProfile(depth=5)

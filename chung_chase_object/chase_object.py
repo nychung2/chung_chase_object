@@ -3,6 +3,7 @@ import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Float64MultiArray
 from geometry_msgs.msg import Twist
+import time
 
 class ChaseObject(Node):
     '''
@@ -28,14 +29,15 @@ class ChaseObject(Node):
         self.vel_publisher
 
     def move_callback(self, instructions):
+        self.get_logger().info("Time: %s" %(time.time()))
         array = instructions.data
         distance = array[0]
         angle = array[1]
         self.p_controller(distance, angle)
 
     def p_controller(self, distance, angle):
-        self.get_logger().info("angle " + str(angle))
-        self.get_logger().info("distance " + str(distance))
+        #self.get_logger().info("angle " + str(angle))
+        #self.get_logger().info("distance " + str(distance))
         e = self.target_angle - angle
         if abs(e) > 0.0873: # roughly +/- 5 degrees
             kpa = 4
