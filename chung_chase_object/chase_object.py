@@ -29,7 +29,7 @@ class ChaseObject(Node):
         self.vel_publisher
 
     def move_callback(self, instructions):
-        self.get_logger().info("Time: %s" %(time.time()))
+        #self.get_logger().info("Time: %s" %(time.time()))
         array = instructions.data
         distance = array[0]
         angle = array[1]

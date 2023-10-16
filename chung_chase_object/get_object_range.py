@@ -7,6 +7,7 @@ from geometry_msgs.msg import Point
 from rclpy.qos import QoSProfile, QoSDurabilityPolicy, QoSReliabilityPolicy, QoSHistoryPolicy
 
 import math
+import time
 
 class ObjectRange(Node):
     '''
@@ -19,7 +20,7 @@ class ObjectRange(Node):
         self.fov = 62.2 * math.pi / 180 # rad
         self.img_width = 320 # px
         self.angle_per_pixel = self.fov / self.img_width
-        self.scan_data = None
+        self.image = 0
 
         lidar_qos_profile = QoSProfile(depth=5)
         lidar_qos_profile.history = QoSHistoryPolicy.KEEP_LAST
@@ -47,15 +48,19 @@ class ObjectRange(Node):
         self.move_publisher
 
     def lidar_callback(self, scan_data):
-        self.scan_data = scan_data
-
-    def loc_callback(self, obj_coords):
-        angle = self.camera_cart2rad(obj_coords)
-        dist = self.find_distance(angle, self.scan_data)
+        angle = self.camera_cart2rad(self.image)
+        dist = self.find_distance(angle, scan_data)
         if dist != -1:
             self.publish_message(dist, angle)
         else:
             self.publish_message(0.5, 0.0)
+
+        self.get_logger().info("Time: %s" %(time.time()))
+
+    def loc_callback(self, obj_coords):
+        self.image = obj_coords.x
+    
+        
 
     def camera_cart2rad(self, coordinates):
         '''
@@ -64,7 +69,7 @@ class ObjectRange(Node):
         Input: coordinates (geometry_msgs Point)
         Output: angle (rad)
         '''
-        x = coordinates.x
+        x = coordinates
         if x == -1:
             return None
         angle = (self.angle_per_pixel * x) - (self.fov / 2)
